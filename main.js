@@ -74,7 +74,7 @@ if (typeof WorkerGlobalScope !== 'undefined' &&
 
 var engine = undefined;
 var network = null;
-var network_loaded = false;
+var dependencies_loaded = false;
 var started = false;
 
 
@@ -125,8 +125,18 @@ function readFile(url) {
   });
 }
 
+function readFileSync(url) {
+  var req = new XMLHttpRequest();
+  req.open('GET', url, false);
+  req.send();
+  if (req.status == 200)
+    return req.response;
+  else
+    throw new Error(req.statusText);
+}
 
-var Network = function() {
+
+Network = function() {
   const kNumOutputPolicies = 1858;
   const kInputPlanes = 112;
 
@@ -149,8 +159,13 @@ var Network = function() {
       // return readFile('weights.dat.gz').then(this.decodeProtobuf.bind(this));
     },
 
-    decodeText: function(bytearray) {
-      var text = window.pako.inflate(bytearray, {to: 'string'});
+    load_sync: function() {
+      this.decodeText(readFileSync('weights.txt'));
+    },
+
+//    decodeText: function(bytearray) {
+ //     var text = window.pako.inflate(bytearray, {to: 'string'});
+    decodeText: function(text) {
       var lines = text.split(/\r\n|\n/);
       var len = lines.length;
       this.log('Network text file has ' + len + ' lines');
@@ -455,7 +470,7 @@ var Network = function() {
     },
 
     loadTest: function() {
-      readFile('test.txt.gz').then(this.decodeTest.bind(this));
+      readFile('test.txt.gz', false).then(this.decodeTest.bind(this));
     },
 
     decodeTest: function(bytearray) {
@@ -476,8 +491,17 @@ var Network = function() {
       this.log('p: ' + predict[0]);
       this.log('v: ' + predict[1]);
     },
-
     forward: function(batch_size, input, policy, value) {
+    
+    	if (!this.model)
+    	return;
+    
+    	var input_array = new Float32Array(Module.HEAPU8.buffer, input, 112*64*batch_size);
+    	var policy_array = new Float32Array(Module.HEAPU8.buffer, policy, 1858*batch_size);
+    	var value_array = new Float32Array(Module.HEAPU8.buffer, policy, batch_size);
+    	this.do_forward(batch_size, input_array, policy_array, value_array);
+    },
+    do_forward: function(batch_size, input, policy, value) {
       var self = this;
       function work() {
         var x = tf.tensor4d(input, [batch_size, kInputPlanes, 8, 8]);
@@ -506,12 +530,12 @@ var Network = function() {
 
 function module_ready() {
   engine = new Module.Engine();
-  if (!network_loaded) return;
+  if (!dependencies_loaded) return;
   start_engine();
 }
 
-function network_load() {
-  network_loaded = true;
+function dependencies_load() {
+  dependencies_loaded = true;
   if (!engine) return;
   start_engine();
 }
@@ -522,25 +546,9 @@ function start_engine() {
   engine.Send('uci');
 }
 
-function load_network() {
-  network = new Network();
-  network.load().then(network_load).catch(function(err) {
-    console.log('Error: ' + new Error(err.message));
-  });
-}
-
 Module['onRuntimeInitialized'] = module_ready;
 
-loadDependencies().then(load_network);
-
-function lc0_forward(batch_size, input, policy, value) {
-  var input_array =
-      new Float32Array(Module.HEAPU8.buffer, input, 112 * 64 * batch_size);
-  var policy_array =
-      new Float32Array(Module.HEAPU8.buffer, policy, 1858 * batch_size);
-  var value_array = new Float32Array(Module.HEAPU8.buffer, value, batch_size);
-  forward(batch_size, input_array, policy_array, value_array);
-}
+loadDependencies().then(dependencies_load);
 
 var loop_id;
 
