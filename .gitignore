@@ -9,3 +9,4 @@ subprojects/*
 !subprojects/*.wrap
 lc0.xcodeproj/
 *.swp
+obj
