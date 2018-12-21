@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>LC0 in the browser</title>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+  <link rel="stylesheet" type="text/css" href="engine.css"/>
+  <link rel="stylesheet" type="text/css" href="chessboard-0.3.0.css"/>
+  <link rel="icon" type="image/png" href="favicon_32.png">
+</head>
+
+<body>
+
+<div>
+  <div id="title">LC0 in the browser</div>
+</div>
+
+<div id="boardset">
+  <div id="lastmove"></div>
+  <div id="board"></div>
+  <div id="rightpane">
+    <div class="tab">
+      <button class="tablinks active" onclick="openTab(event, 'analysis')">Analysis</button>
+      <button class="tablinks" onclick="openTab(event, 'movelist')">Moves</button>
+    </div>
+    <div id="analysis" class="tabcontent defaulttab">
+      <div id="eval"><!-- eval here--></div>
+      <div id="evalinfo"><!-- eval info here--></div>
+      <div id="variations"></div>
+	</div>
+    <div id="movelist" class="tabcontent"></div>
+  </div>
+</div>
+
+<div id="error">
+<div id="error-content"></div>
+<div id="error-cross">&times;</div>
+</div>
+
+<div id="control">
+  <div class="buttons">
+  <!--div>Board</div-->
+    <button id="startBtn">Restart game</button>
+    <button id="takebackBtn">Takeback move</button>
+    <button id="flipBtn">Flip board</button>
+  </div>
+  <div class="buttons">
+  <div>Engine</div>
+    <button id="goBtn">Go</button>
+    <button id="stopBtn">Stop</button>
+    <button id="restartBtn">Restart</button>
+  </div>
+</div>
+
+
+<textarea id="output" rows="16" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly="true"></textarea>
+
+<div id="credits">
+<p>&copy; <a href="https://github.com/LeelaChessZero">LC0 Authors</a></p>
+</div>
+
+<script type='application/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type='application/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+<script type='application/javascript' src="chessboard-0.3.0.js"></script>
+<script type='application/javascript' src="lc0_loader.js"></script>
+<script type='application/javascript' src="controller.js"></script>
+
+</body>
+
+</html>
+
